@@ -1,6 +1,6 @@
 ## Instructions:
 (1) clone repo
-(2) python tf_lstem.py # command line from folder
+(2) python tf_lstm.py # command line from folder
 
 
 ##Working sentiment analysis and other small devices using TensorFlow
