@@ -35,9 +35,9 @@ class SentimentModel(object):
         #self._targets = tf.placeholder(tf.int32, [batch_size, num_steps])
 
         #add LSTM cell and dropout nodes
-        cell = tf.nn.rnn_cell.BasicLSTMCell(size, forget_bias=0.0)
+        cell = tf.contrib.rnn.BasicLSTMCell(size, forget_bias=0.0)
         if is_training and config.keep_prob < 1:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=config.keep_prob)
+            cell = tf.contrib.rnn.DropoutWrapper(cell, output_keep_prob=config.keep_prob)
 
         self.initial_state = cell.zero_state(batch_size, tf.float32)
 
@@ -58,7 +58,7 @@ class SentimentModel(object):
                 (cell_output, state) = cell(inputs[time_step, :, :], state)
                 outputs.append(tf.expand_dims(cell_output, 0))
         
-        outputs = tf.concat(0, outputs)*mask
+        outputs = tf.concat(axis=0, values=outputs)*mask
         mask_sum = tf.reduce_sum(mask, 0)
         proj = tf.reduce_sum(outputs, 0)/mask_sum
         #NOW proj has shape [batch_size, size]
@@ -67,7 +67,7 @@ class SentimentModel(object):
         softmax_b = tf.get_variable("softmax_b", [vocab_size])
         logits = tf.matmul(proj, softmax_w) + softmax_b
         pred = tf.nn.softmax(logits)
-        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits, labels) 
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=labels) 
         self.cost = cost = tf.reduce_sum(loss) / batch_size
         self.final_state = state
         correct_prediction = tf.equal(tf.argmax(pred,1), labels)
@@ -143,7 +143,7 @@ def get_minibatches_idx(n, batch_size, shuffle=False):
 
 def run_epoch(session, m, data, eval_op, verbose=False):
     print("batch size", m.batch_size)
-    state = m.initial_state.eval()
+    state = m.initial_state
     n_samples = data[0].shape[1]
     print("Testing %d samples:"%(n_samples))
    
@@ -162,7 +162,7 @@ def run_epoch(session, m, data, eval_op, verbose=False):
         y = data[2][inds]
 
         cost, state, count, _ = session.run([m.cost, m.final_state, m.accuracy, eval_op],
-                            {m.input_data: x, m.mask: mask, m.labels: y, m.initial_state: state})
+                                            {m.input_data: x, m.mask: mask, m.labels: y})#, m.initial_state: state})
         correct += count
         total += len(inds)
         b_ind += 1
@@ -204,9 +204,9 @@ def main(unused_args):
             mvalid = SentimentModel(is_training=False, config=config)
             mtest = SentimentModel(is_training=False, config=config)
 
-        tf.initialize_all_variables().run()
+        tf.global_variables_initializer().run()
         
-        for i in range(config.max_max_epoch):
+        for i in range(3): #config.max_max_epoch):
             lr_decay = config.lr_decay ** max(i - config.max_epoch, 0.0)
             m.assign_lr(session, config.learning_rate * lr_decay)
 
