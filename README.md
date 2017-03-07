@@ -1,4 +1,8 @@
-#tensorflowtrials
+## Instructions:
+(1) clone repo
+(2) python tf_lstem.py # command line from folder
+
+
 ##Working sentiment analysis and other small devices using TensorFlow
 
 The module tf_lstm.py performs sentiment analysis as done in Theano's SA tutorial 
