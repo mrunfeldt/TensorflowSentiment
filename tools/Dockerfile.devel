@@ -31,6 +31,7 @@ RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py && \
 RUN pip install enum34 futures mock six && \
     pip install --pre 'protobuf>=3.0.0a3' && \
     pip install -i https://testpypi.python.org/simple --pre grpcio
+    pip install —upgrade grpcio
 
 # Set up Bazel.
 
@@ -67,8 +68,49 @@ RUN mkdir /bazel && \
     cd / && \
     rm -f /bazel/bazel-$BAZEL_VERSION-installer-linux-x86_64.sh
 
+#Set up env variable for running config
+ENV PYTHON_BIN_PATH /usr/bin/python
+
+ENV USE_DEFAULT_PYTHON_LIB_PATH=1
+
+# Build without using MLK support
+ENV TF_NEED_MKL 0
+
+# CC compile flag
+ENV CC_OPT_FLAGS "-march=native"
+
+# Use jemalloc as malloc implementation
+ENV TF_NEED_JEMALLOC 1
+
+# Do not build with Google cloud support
+ENV TF_NEED_GCP 0
+
+# build with HFS support
+ENV TF_NEED_HDFS 0
+
+# Do not build with XLA jit compiler since it's experimental
+ENV TF_ENABLE_XLA 0
+
+# Do not build with Open CL support
+ENV TF_NEED_OPENCL 0
+
+# Do not build with Cuda support
+ENV TF_NEED_CUDA 0
+
+# default GCC location
+ENV GCC_HOST_COMPILER_PATH /usr/bin/gcc
+
+# make sure cuda settings are empty
+ENV TF_CUDA_VERSION ""
+ENV CUDA_TOOLKIT_PATH ""
+
 RUN git clone --recurse-submodules https://github.com/tensorflow/serving && \
     cd /serving && \
-    git checkout tags/0.5.1
+    git checkout tags/0.5.1 && \
+    cd /serving/tensorflow && \
+    ./configure && \
+    cd ../ && \
+    bazel build tensorflow_serving/...
+    
     
 CMD ["/bin/bash"]
