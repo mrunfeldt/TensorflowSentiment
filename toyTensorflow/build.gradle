@@ -1,0 +1,113 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://oss.sonatype.org/content/repositories/releases" }
+        maven { url 'http://repo.spring.io/plugins-release' }
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'org.github.ngbinh.scalastyle:gradle-scalastyle-plugin_2.11:0.8.2'
+        classpath 'org.springframework.build.gradle:propdeps-plugin:0.0.7'
+    }
+}
+
+
+plugins {
+    id 'com.jfrog.artifactory' version '3.1.1'
+}
+
+apply plugin: 'com.jfrog.artifactory'
+apply from: 'artifactory.gradle'
+
+//noinspection GroovyAssignabilityCheck
+apply plugin: 'scala'
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'scalaStyle'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'propdeps'
+apply plugin: 'propdeps-idea'
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'java'
+
+// JVM args For the mainclass
+apply plugin: 'application'
+applicationDefaultJvmArgs = ["-Djava.library.path=../jni"]
+
+mainClassName = "com.poc.Poc"
+run {
+    if (project.hasProperty("appArgs") ) {
+        args Eval.me(appArgs)
+    }
+}
+
+ext {
+    scalaVersion = '2.11'
+    scalaVersionRevision = '8'
+    junitVersion = '4.11'
+    jacksonVersion = '2.7.7'
+    sparkVersion = '2.0.0'
+    isSnapshot = { version ->
+        return version.toString().toLowerCase().endsWith("snapshot")
+    }
+}
+
+sourceCompatibility = 1.5
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    scalaLibrary
+    scalaCompiler
+}
+
+dependencies {
+    scalaLibrary "org.scala-lang:scala-library:$scalaVersion.$scalaVersionRevision"
+    scalaCompiler "org.scala-lang:scala-compiler:$scalaVersion.$scalaVersionRevision"
+    compile "org.scala-lang:scala-library:$scalaVersion.$scalaVersionRevision"
+
+    testCompile "org.scalatest:scalatest_$scalaVersion:2.2.6"
+    testCompile "junit:junit:${junitVersion}"
+
+    // Using Building from source method from here: https://github.com/tensorflow/tensorflow/tree/master/tensorflow/java#building-from-source
+    // Need to publish first the local Maven repository
+//    compile "org.tensorflow:libtensorflow:1.0.1"
+
+    // Using Quick start method from here: https://github.com/tensorflow/tensorflow/tree/master/tensorflow/java#quickstart
+    // Requires VM option: -Djava.library.path=/Users/ndrizard/projects/deep_learning/jni
+    compile files('../libtensorflow-1.0.0-PREVIEW1.jar')
+}
+
+
+tasks.withType(ScalaCompile) {
+    configure(scalaCompileOptions.forkOptions) {
+        memoryMaximumSize = '1g'
+        jvmArgs = ['-XX:MaxMetaspaceSize=256m']
+    }
+}
+compileScala {
+    scalaCompileOptions.additionalParameters = ["-optimize"]
+}
+compileTestScala {
+    scalaCompileOptions.additionalParameters = ["-Yrangepos"]
+}
+[compileJava, compileTestJava]*.options.collect { options -> options.encoding = 'UTF-8' }
+
+//noinspection GroovyAssignabilityCheck
+jar {
+    baseName = "${rootProject.name}"
+}
+
+shadowJar {
+    zip64 = true
+    exclude 'META-INF/**'
+    baseName = project.name + '-with-dependencies'
+}
+
+task stage {
+    dependsOn shadowJar
+}
