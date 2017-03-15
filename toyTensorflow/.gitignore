@@ -1,0 +1,13 @@
+.idea/
+**/build/
+build/
+target/
+*.log
+*.log.*
+*.zip
+*.DS_Store
+.gradle/
+*.iml
+*.ipr
+*.iws
+.cache
