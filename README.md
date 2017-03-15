@@ -1,6 +1,6 @@
-## Instructions:
+## Instructions to run lstm example:
 (1) clone repo
-(2) python tf_lstm.py # command line from folder
+(2) python tf_lstm.py # command line from TensorflowSentiment folder
 
 
 ##Working sentiment analysis and other small devices using TensorFlow
