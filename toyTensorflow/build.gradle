@@ -36,7 +36,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 applicationDefaultJvmArgs = ["-Djava.library.path=../jni"]
 
-mainClassName = "com.poc.Poc"
+mainClassName = "com.poc.PocMnist"
 run {
     if (project.hasProperty("appArgs") ) {
         args Eval.me(appArgs)

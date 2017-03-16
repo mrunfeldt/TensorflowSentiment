@@ -23,6 +23,9 @@ object Poc extends App{
     val imageBytes = readAllBytesOrExit(Paths.get(imageFile))
 
     val image = constructAndExecuteGraphToNormalizeImage(imageBytes)
+    println(s"Input data type: ${image.dataType()}")
+    println(s"Input number of dimensions: ${image.numDimensions()}")
+    println(s"Input number of elements: ${image.numElements()}")
     val labelProbabilities = executeInceptionGraph(graphDef, image)
     val bestLabelIdx = maxIndex(labelProbabilities)
     println(s"BEST MATCH: ${labels.get(bestLabelIdx)} (${labelProbabilities(bestLabelIdx) * 100f} likely)")
