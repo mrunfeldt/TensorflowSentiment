@@ -70,6 +70,8 @@ dependencies {
     scalaCompiler "org.scala-lang:scala-compiler:$scalaVersion.$scalaVersionRevision"
     compile "org.scala-lang:scala-library:$scalaVersion.$scalaVersionRevision"
 
+    compile "org.apache.spark:spark-core_$scalaVersion:$sparkVersion"
+
     testCompile "org.scalatest:scalatest_$scalaVersion:2.2.6"
     testCompile "junit:junit:${junitVersion}"
 

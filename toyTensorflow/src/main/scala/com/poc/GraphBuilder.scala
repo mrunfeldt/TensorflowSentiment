@@ -28,6 +28,10 @@ class GraphBuilder(g: Graph ) {
     binaryOp("ExpandDims", input, dim)
   }
 
+  def reshape(input: Output, shape: Output): Output = {
+    binaryOp("Reshape", input, shape)
+  }
+
   def cast(value: Output, dtype: DataType): Output = {
     g.opBuilder("Cast", "Cast").addInput(value).setAttr("DstT", dtype).build().output(0)
   }
