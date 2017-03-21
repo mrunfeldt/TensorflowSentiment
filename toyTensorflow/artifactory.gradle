@@ -1,5 +1,5 @@
 
-artifactory_contextUrl = 'https://relateiq.artifactoryonline.com/relateiq'
+artifactory_contextUrl = 'https://repo.sfiqautomation.com/artifactory/'
 
 def artifactoryCredentials = {
     username "${artifactory_user}"
