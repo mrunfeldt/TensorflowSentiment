@@ -36,11 +36,25 @@ apply plugin: 'java'
 apply plugin: 'application'
 applicationDefaultJvmArgs = ["-Djava.library.path=../jni"]
 
-mainClassName = "com.poc.PocMnist"
-run {
+
+task Poc(type: JavaExec){
     if (project.hasProperty("appArgs") ) {
         args Eval.me(appArgs)
     }
+    jvmArgs("-Djava.library.path=../jni")
+
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.poc.Poc"
+}
+
+task PocMnist(type: JavaExec){
+    if (project.hasProperty("appArgs") ) {
+        args Eval.me(appArgs)
+    }
+    jvmArgs("-Djava.library.path=../jni")
+
+    classpath = sourceSets.main.runtimeClasspath
+    main = "com.poc.PocMnist"
 }
 
 ext {

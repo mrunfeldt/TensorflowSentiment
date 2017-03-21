@@ -10,6 +10,16 @@ import org.apache.spark.SparkContext
  */
 object PocMnistSpark extends App {
 
+  // Helper to time Spark work
+  val timing = new StringBuffer
+  def timed[T](label: String, code: => T): T = {
+    val start = System.currentTimeMillis()
+    val result = code
+    val stop = System.currentTimeMillis()
+    timing.append(s"Processing $label took ${stop - start} ms.\n")
+    result
+  }
+
   val sparkConf = new SparkConf()
     .setAppName("mnist")
     .setMaster("local")
@@ -20,15 +30,26 @@ object PocMnistSpark extends App {
     .zipWithIndex
     .map{ case (line, index) => index -> line.split(" ").map(c => c.toDouble)}
 
-  println(s" Number of input: ${rdd.count}")
+  println(s" Number of elements in rdd: ${rdd.count}")
+  println(s" Number of partitions: ${rdd.partitions.size}")
 
-  val predictions = rdd.mapPartitions(iter =>
-    iter.map{ case (index, input) => index -> PocMnist.predict(input)}
+  val predictions = timed("Predicting one by one in current partition", rdd.mapPartitions(iter =>
+    iter.map{ case (index, input) => index -> PocMnist.predict(input)}).collect()
   )
 
-  println(s"Computed ${predictions.count} predictions")
-  println(predictions.take(10).mkString("\n"))
+  val rddBatch = sparkContext.textFile("./src/main/resources/mnist_test.data")
+    .map(_.split(" ").map(_.toDouble))
 
+  val predictionsBatch = timed("Predicting by batch in current partition", rddBatch.mapPartitions[Long](iter => {
+    // TODO: keeping track of the index (row number) for every prediction
+    PocMnist.batchPredict(iter.toArray).toIterator
+  }).collect())
+
+  println(timing)
+  println(s"Computed ${predictions.size} predictions")
+  println(predictions.take(10).mkString("\n"))
+  println(s"Computed ${predictionsBatch.size} predictions")
+  println(predictionsBatch.take(10).mkString("\n"))
 
 }
 
