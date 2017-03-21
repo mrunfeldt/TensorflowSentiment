@@ -26,5 +26,4 @@ Load the pre-trained tensorflow model to classify MNIST digit. It applies it on 
 It builds an `RDD[Array[Double]` where every `Array[Double]` is a MNIST input image. It then loads the MNIST model locally in Spark and compute inference for every input, it does so locally on the partition either one image at a time or by batch.
 
 ### Usage
-Run within Intellij idea the scala object specifying as JVM args: `-Djava.library.path=../jni
-
+Run within Intellij idea the scala object specifying as JVM args: `-Djava.library.path=../jni`
